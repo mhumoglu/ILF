@@ -15,7 +15,7 @@ app.config["DEBUG"] = True
 def useradd():
     if  "value" in request.form:
         now = datetime.now()
-        for i in range(0,70):
+        for i in range(0,10):
             cipher = Blowfish.new((now - timedelta(seconds=i)).strftime("%Y%d%S%m%H%M"))
             x=str(cipher.decrypt(str(request.form["value"]).encode('utf-8').decode('unicode-escape').encode('latin-1')))
             if "\"state\": \"okey\"" in x:
