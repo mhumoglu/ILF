@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:login_mysql/model/admin.dart';
 import 'AdminPage.dart';
 import 'MemberPage.dart';
+import 'package:convert/convert.dart';
+import 'package:crypto/crypto.dart' as crypto;
+import 'package:dbcrypt/dbcrypt.dart';
+import 'dart:convert';
 
 void main() => runApp(MyApp());
 
@@ -46,7 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
   TextEditingController pass = new TextEditingController();
 
   String msg = '';
-  String _baseUrl = 'http://192.168.1.134/Login/login.php?';
+  String _baseUrl = 'http://140.82.33.14:5000/addUser?';
 
   Future<dynamic> getJson(Uri uri) async {
     http.Response response = await http.post(uri);
@@ -54,14 +56,39 @@ class _MyHomePageState extends State<MyHomePage> {
     return json.decode(response.body);
   }
 
+  ///Generate MD5 hash
+  generateMd5(String data) {
+    var content = new Utf8Encoder().convert(data);
+    var md5 = crypto.md5;
+    var digest = md5.convert(content);
+    return hex.encode(digest.bytes);
+  }
 
-  Future<List> _login() async {
+  /*Future<List> _login() async {
     final response = await http.post(_baseUrl, body: {
       "username": user.text,
-      "password": pass.text,
+      "password": generateMd5(pass.text),
+    });*/
+
+  Future<List> _login() async {
+    var reqBody = {};
+
+    reqBody["state"] = "okey";
+    reqBody["user_name"] = user.text;
+    reqBody["user_hashpass"] = generateMd5(pass.text);
+
+    String json_str = json.encode(reqBody);
+    DBCrypt dBCrypt = DBCrypt();
+    // Hash password with default values
+    String hashedPwd = dBCrypt.hashpw(json_str, dBCrypt.gensalt());
+
+    //print(hashedPwd);
+
+    final response = await http.post(_baseUrl, body: {
+      "value": hashedPwd,
     });
 
-    print(response);
+    //print(response);
     var datauser = json.decode(response.body);
 
     if (datauser.length == 0) {
@@ -78,6 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         username = datauser[0]['username'];
       });
+      msg = "Login Success";
     }
 
     return datauser;
@@ -142,7 +170,7 @@ class _MyHomePageState extends State<MyHomePage> {
   new TextField(
     controller: user,
     decoration: new InputDecoration(
-     labelText: "Correo",fillColor: Colors.red,icon: const Padding(
+     labelText: "username",fillColor: Colors.red,icon: const Padding(
         padding: const EdgeInsets.only(top:15.0),
         child: const Icon(Icons.person))),
   ),
@@ -176,9 +204,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 color: Color(0xFF18D191),
 
-                child: Text('Iniciar Sesión', style: TextStyle(fontSize: 20.0,color: Colors.white)),
+                child: Text('Sign In', style: TextStyle(fontSize: 20.0,color: Colors.white)),
               ),
-            ),
+            ), onPressed: () {},
           ),
 
 
@@ -200,7 +228,7 @@ class _MyHomePageState extends State<MyHomePage> {
           color: Color(0xFF4364A1),
           child: Text('Facebook', style: TextStyle(fontSize: 20.0,color: Colors.white)),
         ),
-      ),
+      ), onPressed: () {},
         ),   // 0xFF4364A1 0xFFDF513B
     new RaisedButton(
       padding: EdgeInsets.only(top: 0),
@@ -218,8 +246,8 @@ class _MyHomePageState extends State<MyHomePage> {
           color: Color(0xFFDF513B),
           padding: EdgeInsets.only(left: 1.2, top:1.2, right:1.2, bottom:1),
           child: Text('Gmail', style: TextStyle(fontSize: 20.0,color: Colors.white)),
-        ),
-      ),),
+        )
+      ),onPressed: () {},),
     Text(msg,style: TextStyle(fontSize: 20.0,color: Colors.red),)
   ],
   ),
