@@ -1,12 +1,14 @@
+import 'package:encrypt/encrypt.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'AdminPage.dart';
+import 'GoogleMapPage.dart';
 import 'MemberPage.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart' as crypto;
-import 'package:dbcrypt/dbcrypt.dart';
 import 'dart:convert';
+import 'package:encrypt/encrypt.dart' as encrypt;
 
 void main() => runApp(MyApp());
 
@@ -26,6 +28,7 @@ class MyApp extends StatelessWidget {
         '/AdminPage': (BuildContext context)=> new AdminPage(username: username,),
         '/MemberPage': (BuildContext context)=> new MemberPage(username: username,),
         '/MyHomePage': (BuildContext context)=> new MyHomePage(),
+        '/GoogleMapPage': (BuildContext context)=> new GoogleMapPage(),
       },
     );
   }
@@ -77,15 +80,27 @@ class _MyHomePageState extends State<MyHomePage> {
     reqBody["user_name"] = user.text;
     reqBody["user_hashpass"] = generateMd5(pass.text);
 
-    String json_str = json.encode(reqBody);
-    DBCrypt dBCrypt = DBCrypt();
+    //String json_str = json.encode(reqBody);
+    String json_str = "Deneme";
+    //DBCrypt dBCrypt = DBCrypt();
     // Hash password with default values
-    String hashedPwd = dBCrypt.hashpw(json_str, dBCrypt.gensalt());
+    //String hashedPwd = dBCrypt.hashpw(json_str, dBCrypt.gensalt());
+    //final key = encrypt.Key.fromLength(32);
+    final key = encrypt.Key.fromUtf8("16 characters key");
+    //final iv = encrypt.IV.fromLength(16);
+    final iv = encrypt.IV.fromUtf8("16 characters key");
+    final encrypter = encrypt.Encrypter(AES(key));
 
-    //print(hashedPwd);
+    //final encrypted = encrypter.encrypt(json_str, iv: iv);
+    //final decrypted = encrypter.decrypt(encrypted, iv: iv);
+    final encrypted = encrypter.encrypt(json_str, iv: iv);
+    final decrypted = encrypter.decrypt(encrypted, iv: iv);
+
+    print(encrypted.base64);
+    print(decrypted);
 
     final response = await http.post(_baseUrl, body: {
-      "value": hashedPwd,
+      "value": encrypted,
     });
 
     //print(response);
@@ -96,12 +111,12 @@ class _MyHomePageState extends State<MyHomePage> {
         msg = "Login Fail";
       });
     } else {
-      if (datauser[0]['level'] == 'admin') {
+       /*if (datauser[0]['level'] == 'admin') {
         Navigator.pushReplacementNamed(context, '/AdminPage');
       } else if (datauser[0]['level'] == 'member') {
         Navigator.pushReplacementNamed(context, '/MemberPage');
-      }
-
+      }*/
+      Navigator.pushReplacementNamed(context, '/GoogleMapPage');
       setState(() {
         username = datauser[0]['username'];
       });
