@@ -111,12 +111,12 @@ class _MyHomePageState extends State<MyHomePage> {
         msg = "Login Fail";
       });
     } else {
-       /*if (datauser[0]['level'] == 'admin') {
+      /*if (datauser[0]['level'] == 'admin') {
         Navigator.pushReplacementNamed(context, '/AdminPage');
       } else if (datauser[0]['level'] == 'member') {
         Navigator.pushReplacementNamed(context, '/MemberPage');
       }*/
-      Navigator.pushReplacementNamed(context, '/GoogleMapPage');
+
       setState(() {
         username = datauser[0]['username'];
       });
@@ -125,7 +125,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return datauser;
   }
-
 
   @override
   Widget build(BuildContext context) {
